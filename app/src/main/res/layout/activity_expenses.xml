@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.Expenses">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="180dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:background="@color/colorPrimary"
+                android:orientation="vertical" />
+
+            <ImageView
+                android:layout_width="87dp"
+                android:layout_height="93dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="155dp"
+                android:layout_marginTop="80dp"
+                android:src="@drawable/logo1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="150dp"
+                android:layout_marginTop="50dp"
+                android:text="Expenses"
+                android:textColor="#fff"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btnAddExpenses"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_gravity="end|bottom"
+                android:layout_margin="16dp"
+                android:backgroundTint="@color/colorPrimary"
+                app:borderWidth="0dp"
+                android:src="@mipmap/ic_new_round"
+                app:rippleColor="@color/colorWhite"
+                android:clickable="true"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/expensesList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/expense_item" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
