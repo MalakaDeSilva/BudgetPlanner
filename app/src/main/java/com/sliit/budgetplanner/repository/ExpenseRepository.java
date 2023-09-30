@@ -19,10 +19,6 @@ public class ExpenseRepository {
     private static ExpenseRepository instance;
     private FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
-    private ExpenseRepository() {
-        Log.i(TAG, "ExpenseRepository is created.");
-    }
-
     public static ExpenseRepository getInstance() {
         if (instance == null) {
             instance = new ExpenseRepository();

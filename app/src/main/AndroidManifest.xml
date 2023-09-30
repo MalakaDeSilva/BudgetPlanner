@@ -16,6 +16,9 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".ui.Incomes"
+            android:exported="false" />
+        <activity
             android:name=".ui.Expenses"
             android:exported="false" />
         <activity

@@ -1,9 +1,5 @@
 package com.sliit.budgetplanner.ui;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Expense;
-import com.sliit.budgetplanner.viewmodel.ExpensesViewModel;
 
 import java.util.List;
 
@@ -35,7 +30,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     @NonNull
     @Override
     public ExpenseAdapter.ExpenseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.expense_item, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.rv_item, parent, false);
         return new ExpenseViewHolder(itemView);
     }
 
@@ -53,11 +48,10 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     public class ExpenseViewHolder extends RecyclerView.ViewHolder {
         TextView expenseTitle;
-        ImageButton btnDelete;
 
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
-            this.expenseTitle = itemView.findViewById(R.id.expenseTitle);
+            this.expenseTitle = itemView.findViewById(R.id.title);
         }
     }
 }

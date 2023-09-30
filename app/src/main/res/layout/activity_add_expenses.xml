@@ -26,7 +26,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="155dp"
                 android:layout_marginTop="80dp"
-                android:src="@drawable/logo1" />
+                android:src="@drawable/ic_expenses" />
 
             <TextView
                 android:layout_width="wrap_content"

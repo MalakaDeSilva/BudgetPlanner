@@ -2,6 +2,7 @@ package com.sliit.budgetplanner.util;
 
 public class Constants {
     public static final String COL_EXPENSES = "expenses";
+    public static final String COL_INCOMES = "incomes";
     public static final String ID = "id";
     public static final String PAYMENT_METHOD = "paymentMethod";
     public static final String TYPE = "type";
