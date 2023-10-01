@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
@@ -37,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bounce);
             cred_limit.startAnimation(animation);
 
-            Intent intent = new Intent(MainActivity.this, SpendingLimit.class);
+            Intent intent = new Intent(MainActivity.this, Analysis.class);
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });

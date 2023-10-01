@@ -6,11 +6,12 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.repository.IncomeRepository;
-import com.sliit.budgetplanner.ui.IncomeAdapter;
+import com.sliit.budgetplanner.ui.adapters.IncomeAdapter;
 import com.sliit.budgetplanner.util.Constants;
 
 import java.util.List;
@@ -43,5 +44,9 @@ public class IncomeViewModel extends AndroidViewModel {
 
     public void deleteIncome(Income income) {
         IncomeRepository.getInstance().deleteIncome(incomesRef, income);
+    }
+
+    public List<Income> getIncomeByDateRange(Timestamp startDate, Timestamp endDate) {
+        return IncomeRepository.getInstance().getIncomeByDateRange(incomesRef, startDate, endDate);
     }
 }

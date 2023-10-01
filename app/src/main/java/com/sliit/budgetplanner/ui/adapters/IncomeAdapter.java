@@ -1,4 +1,4 @@
-package com.sliit.budgetplanner.ui;
+package com.sliit.budgetplanner.ui.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

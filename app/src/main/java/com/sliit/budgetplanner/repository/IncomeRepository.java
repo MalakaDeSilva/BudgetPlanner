@@ -5,11 +5,14 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.sliit.budgetplanner.model.Income;
-import com.sliit.budgetplanner.ui.IncomeAdapter;
+import com.sliit.budgetplanner.ui.adapters.IncomeAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,5 +77,23 @@ public class IncomeRepository {
 
     public void deleteIncome(CollectionReference incomesRef, Income income) {
         incomesRef.document(income.getId()).delete();
+    }
+
+    public List<Income> getIncomeByDateRange(CollectionReference incomesRef, Timestamp startDate, Timestamp endDate) {
+        List<Income> incomes = new ArrayList<>();
+
+        Query query = incomesRef.where(Filter.lessThan("date", endDate)).where(Filter.greaterThan("date", startDate));
+
+        query.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Income incomeObj = document.toObject(Income.class);
+                    incomeObj.setId(document.getId());
+                    incomes.add(incomeObj);
+                }
+            }
+        });
+
+        return incomes;
     }
 }

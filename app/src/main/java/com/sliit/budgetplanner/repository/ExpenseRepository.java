@@ -5,11 +5,15 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.sliit.budgetplanner.model.Expense;
-import com.sliit.budgetplanner.ui.ExpenseAdapter;
+import com.sliit.budgetplanner.model.Income;
+import com.sliit.budgetplanner.ui.adapters.ExpenseAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,5 +78,23 @@ public class ExpenseRepository {
 
     public void deleteExpense(CollectionReference expensesRef, Expense expense) {
         expensesRef.document(expense.getId()).delete();
+    }
+
+    public List<Expense> getExpensesByDateRange(CollectionReference expensesRef, Timestamp startDate, Timestamp endDate) {
+        List<Expense> expenses = new ArrayList<>();
+
+        Query query = expensesRef.where(Filter.lessThan("date", endDate)).where(Filter.greaterThan("date", startDate));
+
+        query.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Expense expenseObj = document.toObject(Expense.class);
+                    expenseObj.setId(document.getId());
+                    expenses.add(expenseObj);
+                }
+            }
+        });
+
+        return expenses;
     }
 }

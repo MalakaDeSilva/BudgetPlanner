@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">BudgetPlanner</string>
-    <string name="lblSpend_limit">Set Spending Limit</string>
+    <string name="lblAnalysis">Analysis</string>
     <string name="lblAdd_expenses">Expenses</string>
     <string name="lbl_Income">Income</string>
     <string name="lblHistory_reports">History and Reports</string>

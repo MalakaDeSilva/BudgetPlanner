@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Expense;
+import com.sliit.budgetplanner.ui.adapters.ExpenseAdapter;
 import com.sliit.budgetplanner.util.Constants;
 import com.sliit.budgetplanner.viewmodel.ExpensesViewModel;
 
@@ -104,5 +105,11 @@ public class Expenses extends AppCompatActivity {
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

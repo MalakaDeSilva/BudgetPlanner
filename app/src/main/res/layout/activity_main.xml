@@ -62,7 +62,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="10,000"
+                        android:text="150,000"
                         android:textColor="@color/colorLightGray"
                         android:textSize="60sp"
                         android:textStyle="bold" />
@@ -106,7 +106,7 @@
                         android:layout_height="wrap_content"
                         android:paddingStart="20dp"
                         android:paddingEnd="10dp"
-                        android:text="+ 5,000"
+                        android:text="+ 250,000"
                         android:textAlignment="center"
                         android:textColor="@color/colorGrassDark"
                         android:textSize="35sp"
@@ -139,7 +139,7 @@
                         android:layout_height="wrap_content"
                         android:paddingStart="20dp"
                         android:paddingEnd="10dp"
-                        android:text="- 5,000"
+                        android:text="- 100,000"
                         android:textAlignment="center"
                         android:textColor="@color/colorGrapeFruitDark"
                         android:textSize="35sp"
@@ -191,7 +191,7 @@
                         android:layout_height="60dp"
                         android:layout_gravity="center"
                         android:layout_marginTop="10dp"
-                        android:contentDescription="@string/lblSpend_limit"
+                        android:contentDescription="@string/lblAnalysis"
                         android:src="@drawable/ic_limit" />
 
                     <TextView
@@ -200,7 +200,7 @@
                         android:layout_marginTop="10dp"
                         android:background="@color/colorGrapeFruitDark"
                         android:padding="8dp"
-                        android:text="@string/lblSpend_limit"
+                        android:text="@string/lblAnalysis"
                         android:textAlignment="center"
                         android:textColor="@color/colorWhite"
                         android:textSize="18sp" />
