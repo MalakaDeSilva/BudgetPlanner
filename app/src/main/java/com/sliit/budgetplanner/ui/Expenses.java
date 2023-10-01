@@ -43,7 +43,7 @@ public class Expenses extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(expenseAdapter);
 
-        expensesViewModel.startDataListener(expenseAdapter);
+        expensesViewModel.startDataListener(this, expenseAdapter);
 
         btnAddExpenses.setOnClickListener(view -> {
             Intent intent = new Intent(this, AddExpenses.class);

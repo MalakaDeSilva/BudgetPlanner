@@ -42,7 +42,7 @@ public class Incomes extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(incomeAdapter);
 
-        incomeViewModel.startDataListener(incomeAdapter);
+        incomeViewModel.startDataListener(this, incomeAdapter);
 
         btnAddIncomes.setOnClickListener(view -> {
             Intent intent = new Intent(this, AddIncome.class);

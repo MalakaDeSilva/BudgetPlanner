@@ -1,6 +1,7 @@
 package com.sliit.budgetplanner.viewmodel;
 
 import android.app.Application;
+import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -13,11 +14,12 @@ import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.repository.IncomeRepository;
 import com.sliit.budgetplanner.ui.adapters.IncomeAdapter;
 import com.sliit.budgetplanner.util.Constants;
+import com.sliit.budgetplanner.util.FBUtil;
 
 import java.util.List;
 
 public class IncomeViewModel extends AndroidViewModel {
-    private FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+    private FirebaseFirestore firestore = FBUtil.getInstance().getDB();
     private CollectionReference incomesRef = firestore.collection(Constants.COL_INCOMES);
     private LiveData<List<Income>> incomesLiveData;
 
@@ -30,8 +32,8 @@ public class IncomeViewModel extends AndroidViewModel {
         return incomesLiveData;
     }
 
-    public void startDataListener(IncomeAdapter incomeAdapter) {
-        IncomeRepository.getInstance().startDataListener(incomesRef, incomeAdapter);
+    public void startDataListener(Context context, IncomeAdapter incomeAdapter) {
+        IncomeRepository.getInstance().startDataListener(context, incomesRef, incomeAdapter);
     }
 
     public void addIncome(Income income) {

@@ -1,6 +1,8 @@
 package com.sliit.budgetplanner.repository;
 
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -20,7 +22,6 @@ import java.util.List;
 public class IncomeRepository {
     private static final String TAG = IncomeRepository.class.getCanonicalName();
     private static IncomeRepository instance;
-    private FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
     public static IncomeRepository getInstance() {
         if (instance == null) {
@@ -49,8 +50,10 @@ public class IncomeRepository {
     }
 
 
-    public void startDataListener(CollectionReference incomesRef, IncomeAdapter incomeAdapter) {
+    public void startDataListener(Context context, CollectionReference incomesRef, IncomeAdapter incomeAdapter) {
         incomesRef.addSnapshotListener((value, e) -> {
+            boolean isOffline = Boolean.FALSE;
+
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);
                 return;
@@ -58,12 +61,17 @@ public class IncomeRepository {
 
             List<Income> _incomes = new ArrayList<>();
             for (QueryDocumentSnapshot doc : value) {
+                isOffline = doc.getMetadata().isFromCache();
+
                 Income income = doc.toObject(Income.class);
                 income.setId(doc.getId());
                 _incomes.add(income);
             }
             incomeAdapter.setIncomesList(_incomes);
             incomeAdapter.notifyDataSetChanged();
+
+            if (isOffline)
+                Toast.makeText(context, "Data fetched from offline cache.", Toast.LENGTH_SHORT).show();
         });
     }
 

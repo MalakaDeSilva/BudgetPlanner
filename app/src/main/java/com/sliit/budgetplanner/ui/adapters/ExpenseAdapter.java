@@ -1,5 +1,6 @@
 package com.sliit.budgetplanner.ui.adapters;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Expense;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
@@ -33,11 +35,17 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return new ExpenseViewHolder(itemView);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ExpenseAdapter.ExpenseViewHolder holder, int position) {
         Expense expense = expenseList.get(position);
 
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(expense.getDate().toDate());
+
         holder.expenseTitle.setText(expense.getType());
+        holder.expenseDate.setText(calendar.get(Calendar.DAY_OF_MONTH) +"/" + calendar.get(Calendar.MONTH));
+        holder.expenseAmount.setText(String.valueOf(expense.getAmount()));
     }
 
     @Override
@@ -47,10 +55,14 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     public class ExpenseViewHolder extends RecyclerView.ViewHolder {
         TextView expenseTitle;
+        TextView expenseDate;
+        TextView expenseAmount;
 
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
             this.expenseTitle = itemView.findViewById(R.id.title);
+            this.expenseDate = itemView.findViewById(R.id.date);
+            this.expenseAmount = itemView.findViewById(R.id.amount);
         }
     }
 }

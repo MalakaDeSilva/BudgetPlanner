@@ -1,5 +1,6 @@
 package com.sliit.budgetplanner.ui.adapters;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Income;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class IncomeAdapter  extends RecyclerView.Adapter<IncomeAdapter.IncomeViewHolder>{
@@ -31,11 +33,17 @@ public class IncomeAdapter  extends RecyclerView.Adapter<IncomeAdapter.IncomeVie
         return new IncomeViewHolder(itemView);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull IncomeAdapter.IncomeViewHolder holder, int position) {
         Income income = incomesList.get(position);
 
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(income.getDate().toDate());
+
         holder.incomeTitle.setText(income.getType());
+        holder.incomeDate.setText(calendar.get(Calendar.DAY_OF_MONTH) +"/" + calendar.get(Calendar.MONTH));
+        holder.incomeAmount.setText(String.valueOf(income.getAmount()));
     }
 
     @Override
@@ -45,10 +53,14 @@ public class IncomeAdapter  extends RecyclerView.Adapter<IncomeAdapter.IncomeVie
 
     public class IncomeViewHolder extends RecyclerView.ViewHolder {
         TextView incomeTitle;
+        TextView incomeDate;
+        TextView incomeAmount;
 
         public IncomeViewHolder(@NonNull View itemView) {
             super(itemView);
             this.incomeTitle = itemView.findViewById(R.id.title);
+            this.incomeDate = itemView.findViewById(R.id.date);
+            this.incomeAmount = itemView.findViewById(R.id.amount);
         }
     }
 }
