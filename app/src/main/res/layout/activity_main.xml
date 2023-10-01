@@ -184,6 +184,7 @@
                     android:layout_height="120dp"
                     android:layout_weight="1"
                     android:background="@color/colorGrapeFruit"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:orientation="vertical">
 
                     <ImageView
@@ -213,6 +214,7 @@
                     android:layout_height="120dp"
                     android:layout_weight="1"
                     android:background="@color/colorBitterSweet"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:orientation="vertical">
 
                     <ImageView
@@ -253,6 +255,7 @@
                     android:layout_height="120dp"
                     android:layout_weight="1"
                     android:background="@color/colorGrass"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:orientation="vertical">
 
                     <ImageView
@@ -282,6 +285,7 @@
                     android:layout_height="120dp"
                     android:layout_weight="1"
                     android:background="@color/colorBlueJeans"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:orientation="vertical">
 
                     <ImageView

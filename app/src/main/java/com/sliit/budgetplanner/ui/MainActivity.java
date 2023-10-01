@@ -24,8 +24,6 @@ public class MainActivity extends AppCompatActivity {
         expenses = findViewById(R.id.expenses);
 
         income.setOnClickListener(view -> {
-            Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bounce);
-            income.startAnimation(animation);
 
             Intent intent = new Intent(MainActivity.this, Incomes.class);
             startActivity(intent);
@@ -33,8 +31,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         cred_limit.setOnClickListener(view -> {
-            Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bounce);
-            cred_limit.startAnimation(animation);
 
             Intent intent = new Intent(MainActivity.this, Analysis.class);
             startActivity(intent);
@@ -42,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         history_reports.setOnClickListener(view -> {
-            Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bounce);
-            history_reports.startAnimation(animation);
 
             Intent histnrep = new Intent(MainActivity.this, HistoryandReports.class);
             startActivity(histnrep);
@@ -51,8 +45,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         expenses.setOnClickListener(view -> {
-            Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bounce);
-            expenses.startAnimation(animation);
 
             Intent expenses = new Intent(MainActivity.this, Expenses.class);
             startActivity(expenses);
