@@ -24,6 +24,7 @@
     <color name="colorPinkRoseDark">#D770AD</color>
     <color name="colorGray">#D3D3D3</color>
     <color name="colorBlack">#000000</color>
+    <color name="colorBlackTransparent">#4F000000</color>
     <color name="colorLightGray">#6D6D6D</color>
 </resources>
 
