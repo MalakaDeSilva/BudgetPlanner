@@ -39,6 +39,7 @@
                 android:layout_height="match_parent"
                 android:divider="@android:drawable/bottom_bar"
                 android:gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -46,6 +47,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
+                    android:id="@+id/email"
                     android:hint="Email"
                     android:inputType="textEmailAddress"
                     android:textSize="20sp" />
@@ -54,13 +56,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
+                    android:id="@+id/password"
                     android:hint="Password"
                     android:inputType="textPassword"
                     android:textSize="20sp" />
 
                 <Button
                     android:id="@+id/btnLogin"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="10dp"
                     android:background="@drawable/buttonstyle"
@@ -68,26 +71,23 @@
                     android:text="Login"
                     android:textColor="@color/colorWhite" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp">
+                    android:text="or"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorBlack"
+                    android:fontFamily="@font/montserrat_light"
+                    android:textSize="15sp" />
 
-                    <View
-                        android:layout_width="200dp"
-                        android:layout_height="2dp"
-                        android:background="@color/colorGray" />
-                </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/googleLogin"
-                    android:layout_width="wrap_content"
+                <Button
+                    android:id="@+id/btnSignUp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_google_round"
-                    android:background="@color/colorWhite"
-                    android:layout_marginTop="30dp"
-                    android:layout_marginBottom="30dp"
-                    android:contentDescription="Sign in with Google" />
+                    android:layout_marginVertical="10dp"
+                    android:background="@drawable/borderbutton"
+                    android:text="Sign Up"
+                    android:textColor="@color/colorPrimaryDark" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

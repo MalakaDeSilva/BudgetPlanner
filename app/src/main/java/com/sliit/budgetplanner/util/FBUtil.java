@@ -1,6 +1,6 @@
 package com.sliit.budgetplanner.util;
 
-import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.MemoryCacheSettings;
@@ -9,6 +9,7 @@ import com.google.firebase.firestore.PersistentCacheSettings;
 public class FBUtil {
     private static FBUtil instance = null;
     private FirebaseFirestore firestore;
+    private FirebaseAuth firebaseAuth;
 
     private FBUtil() {
         firestore = FirebaseFirestore.getInstance();
@@ -20,6 +21,8 @@ public class FBUtil {
                         .build();
 
         firestore.setFirestoreSettings(settings);
+
+        firebaseAuth = FirebaseAuth.getInstance();
     }
 
     public static FBUtil getInstance() {
@@ -31,5 +34,9 @@ public class FBUtil {
 
     public FirebaseFirestore getDB() {
         return firestore;
+    }
+
+    public FirebaseAuth getAuth() {
+        return firebaseAuth;
     }
 }
