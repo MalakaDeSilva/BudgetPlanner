@@ -16,6 +16,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.sliit.budgetplanner.model.Expense;
 import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.ui.adapters.ExpenseAdapter;
+import com.sliit.budgetplanner.util.Constants;
+import com.sliit.budgetplanner.util.FBUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +25,16 @@ import java.util.List;
 public class ExpenseRepository {
     private static final String TAG = ExpenseRepository.class.getCanonicalName();
     private static ExpenseRepository instance;
-
+    private String userId;
     public static ExpenseRepository getInstance() {
         if (instance == null) {
             instance = new ExpenseRepository();
         }
         return instance;
+    }
+
+    private ExpenseRepository() {
+        this.userId = FBUtil.getInstance().getAuth().getCurrentUser().getUid();
     }
 
     public LiveData<List<Expense>> getExpensesLiveData(CollectionReference expensesRef) {
@@ -52,7 +58,7 @@ public class ExpenseRepository {
 
 
     public void startDataListener(Context context, CollectionReference expensesRef, ExpenseAdapter expenseAdapter) {
-        expensesRef.addSnapshotListener((value, e) -> {
+        expensesRef.whereEqualTo(Constants.USER_ID, userId).addSnapshotListener((value, e) -> {
             boolean isOffline = Boolean.FALSE;
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);
@@ -75,10 +81,12 @@ public class ExpenseRepository {
     }
 
     public void addExpense(CollectionReference expensesRef, Expense expense) {
+        expense.setUserId(userId);
         expensesRef.add(expense);
     }
 
     public void updateExpense(CollectionReference expensesRef, Expense expense) {
+        expense.setUserId(userId);
         expensesRef.document(expense.getId()).set(expense);
     }
 
@@ -89,7 +97,9 @@ public class ExpenseRepository {
     public List<Expense> getExpensesByDateRange(CollectionReference expensesRef, Timestamp startDate, Timestamp endDate) {
         List<Expense> expenses = new ArrayList<>();
 
-        Query query = expensesRef.where(Filter.lessThan("date", endDate)).where(Filter.greaterThan("date", startDate));
+        Query query = expensesRef.whereEqualTo(Constants.USER_ID, userId)
+                .where(Filter.lessThan(Constants.DATE, endDate))
+                .where(Filter.greaterThan(Constants.DATE, startDate));
 
         query.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {

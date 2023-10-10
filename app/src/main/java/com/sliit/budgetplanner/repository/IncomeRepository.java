@@ -15,6 +15,8 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.ui.adapters.IncomeAdapter;
+import com.sliit.budgetplanner.util.Constants;
+import com.sliit.budgetplanner.util.FBUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +24,17 @@ import java.util.List;
 public class IncomeRepository {
     private static final String TAG = IncomeRepository.class.getCanonicalName();
     private static IncomeRepository instance;
+    private String userId;
 
     public static IncomeRepository getInstance() {
         if (instance == null) {
             instance = new IncomeRepository();
         }
         return instance;
+    }
+
+    private IncomeRepository() {
+        this.userId = FBUtil.getInstance().getAuth().getCurrentUser().getUid();
     }
 
     public LiveData<List<Income>> getIncomesLiveData(CollectionReference incomesRef) {
@@ -51,7 +58,7 @@ public class IncomeRepository {
 
 
     public void startDataListener(Context context, CollectionReference incomesRef, IncomeAdapter incomeAdapter) {
-        incomesRef.addSnapshotListener((value, e) -> {
+        incomesRef.whereEqualTo(Constants.USER_ID, userId).addSnapshotListener((value, e) -> {
             boolean isOffline = Boolean.FALSE;
 
             if (e != null) {
@@ -76,10 +83,12 @@ public class IncomeRepository {
     }
 
     public void addIncome(CollectionReference incomesRef, Income income) {
+        income.setUserId(userId);
         incomesRef.add(income);
     }
 
     public void updateIncome(CollectionReference incomesRef, Income income) {
+        income.setUserId(userId);
         incomesRef.document(income.getId()).set(income);
     }
 
@@ -90,7 +99,9 @@ public class IncomeRepository {
     public List<Income> getIncomeByDateRange(CollectionReference incomesRef, Timestamp startDate, Timestamp endDate) {
         List<Income> incomes = new ArrayList<>();
 
-        Query query = incomesRef.where(Filter.lessThan("date", endDate)).where(Filter.greaterThan("date", startDate));
+        Query query = incomesRef.whereEqualTo(Constants.USER_ID, userId)
+                .where(Filter.lessThan(Constants.DATE, endDate))
+                .where(Filter.greaterThan(Constants.DATE, startDate));
 
         query.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {

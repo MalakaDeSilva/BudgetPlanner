@@ -15,9 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Expense;
 import com.sliit.budgetplanner.util.Constants;
+import com.sliit.budgetplanner.util.FBUtil;
 import com.sliit.budgetplanner.viewmodel.ExpensesViewModel;
 
 import org.checkerframework.checker.units.qual.A;
@@ -130,6 +132,8 @@ public class AddExpenses extends AppCompatActivity {
                     case Constants.ID:
                         expense.setId(extras.getString(key));
                         break;
+                    case Constants.USER_ID:
+                        expense.setUserId(extras.getString(key));
                     case Constants.AMOUNT:
                         expense.setAmount(extras.getFloat(key));
                         break;
