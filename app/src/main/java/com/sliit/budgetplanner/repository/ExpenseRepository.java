@@ -2,6 +2,7 @@ package com.sliit.budgetplanner.repository;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
@@ -10,11 +11,9 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.Filter;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.sliit.budgetplanner.model.Expense;
-import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.ui.adapters.ExpenseAdapter;
 import com.sliit.budgetplanner.util.Constants;
 import com.sliit.budgetplanner.util.FBUtil;
@@ -74,6 +73,29 @@ public class ExpenseRepository {
             }
             expenseAdapter.setExpenseList(_expenses);
             expenseAdapter.notifyDataSetChanged();
+
+            if (isOffline)
+                Toast.makeText(context, "Data fetched from offline cache.", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    public void getTotalExpenses(Context context, CollectionReference expensesRef, TextView txtTotal) {
+        expensesRef.whereEqualTo(Constants.USER_ID, userId).addSnapshotListener((value, e) -> {
+            boolean isOffline = Boolean.FALSE;
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+
+            float total = 0;
+            for (QueryDocumentSnapshot doc : value) {
+                isOffline = doc.getMetadata().isFromCache();
+
+                Expense expense = doc.toObject(Expense.class);
+                total += expense.getAmount();
+            }
+
+            txtTotal.setText(String.valueOf(total));
 
             if (isOffline)
                 Toast.makeText(context, "Data fetched from offline cache.", Toast.LENGTH_SHORT).show();

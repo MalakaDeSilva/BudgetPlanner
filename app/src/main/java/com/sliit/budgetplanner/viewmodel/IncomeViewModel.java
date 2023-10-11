@@ -2,6 +2,7 @@ package com.sliit.budgetplanner.viewmodel;
 
 import android.app.Application;
 import android.content.Context;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -50,5 +51,9 @@ public class IncomeViewModel extends AndroidViewModel {
 
     public List<Income> getIncomeByDateRange(Timestamp startDate, Timestamp endDate) {
         return IncomeRepository.getInstance().getIncomeByDateRange(incomesRef, startDate, endDate);
+    }
+
+    public void getTotalIncome(Context context, TextView txtTotal) {
+        IncomeRepository.getInstance().getTotalIncome(context, incomesRef, txtTotal);
     }
 }

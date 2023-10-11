@@ -2,6 +2,7 @@ package com.sliit.budgetplanner.repository;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
@@ -10,7 +11,6 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.Filter;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.sliit.budgetplanner.model.Income;
@@ -80,6 +80,33 @@ public class IncomeRepository {
             if (isOffline)
                 Toast.makeText(context, "Data fetched from offline cache.", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    public void getTotalIncome(Context context, CollectionReference incomesRef, TextView txtTotal) {
+
+        incomesRef.whereEqualTo(Constants.USER_ID, userId).addSnapshotListener((value, e) -> {
+            boolean isOffline = Boolean.FALSE;
+
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+
+            float total = 0;
+
+            for (QueryDocumentSnapshot doc : value) {
+                isOffline = doc.getMetadata().isFromCache();
+
+                Income income = doc.toObject(Income.class);
+                total += income.getAmount();
+            }
+
+            txtTotal.setText(String.valueOf(total));
+
+            if (isOffline)
+                Toast.makeText(context, "Data fetched from offline cache.", Toast.LENGTH_SHORT).show();
+        });
+
     }
 
     public void addIncome(CollectionReference incomesRef, Income income) {

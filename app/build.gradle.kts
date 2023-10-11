@@ -47,4 +47,5 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.0")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.itextpdf:itext7-core:7.1.15")
 }

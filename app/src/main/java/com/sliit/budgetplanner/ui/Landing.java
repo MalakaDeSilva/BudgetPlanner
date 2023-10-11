@@ -4,16 +4,11 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.sliit.budgetplanner.R;
 
@@ -29,10 +24,6 @@ public class Landing extends AppCompatActivity {
         setContentView(R.layout.activity_landing);
         Objects.requireNonNull(getSupportActionBar()).hide();
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
 
         getStarted = findViewById(R.id.getStarted);
 

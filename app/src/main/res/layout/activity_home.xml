@@ -58,11 +58,10 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/remain_value"
+                        android:id="@+id/txtRemainder"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="150,000"
                         android:textColor="@color/colorLightGray"
                         android:textSize="60sp"
                         android:textStyle="bold" />
@@ -102,6 +101,7 @@
                     android:background="@drawable/border">
 
                     <TextView
+                        android:id="@+id/txtIncome"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingStart="20dp"
@@ -135,11 +135,11 @@
                     android:background="@drawable/border">
 
                     <TextView
+                        android:id="@+id/txtExpenses"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingStart="20dp"
                         android:paddingEnd="10dp"
-                        android:text="- 100,000"
                         android:textAlignment="center"
                         android:textColor="@color/colorGrapeFruitDark"
                         android:textSize="35sp"

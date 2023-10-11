@@ -2,6 +2,7 @@ package com.sliit.budgetplanner.viewmodel;
 
 import android.app.Application;
 import android.content.Context;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -49,5 +50,9 @@ public class ExpensesViewModel extends AndroidViewModel {
 
     public List<Expense> getExpensesByDateRange(Timestamp startDate, Timestamp endDate) {
         return ExpenseRepository.getInstance().getExpensesByDateRange(expensesRef, startDate, endDate);
+    }
+
+    public void getTotalExpenses(Context context, TextView txtTotal) {
+        ExpenseRepository.getInstance().getTotalExpenses(context, expensesRef, txtTotal);
     }
 }

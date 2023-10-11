@@ -1,30 +1,44 @@
 package com.sliit.budgetplanner.ui;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 import android.app.DatePickerDialog;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.pdf.PdfDocument;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.property.TextAlignment;
+import com.itextpdf.layout.property.UnitValue;
+import com.itextpdf.layout.property.VerticalAlignment;
 import com.sliit.budgetplanner.R;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
 public class HistoryandReports extends AppCompatActivity {
+    private static final int PERMISSION_REQUEST_CODE = 200;
     private Button generate;
     private DatePickerDialog picker;
     private EditText fromDate, toDate;
@@ -69,54 +83,110 @@ public class HistoryandReports extends AppCompatActivity {
 
             generate.startAnimation(animation);
 
-            createReport("TEST", 300, 600);
+            generatePdfReport();
         });
-    }
 
-    private void createReport(String text, int width_, int height_) {
-        PdfDocument document = new PdfDocument();
 
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(width_, height_, 1).create();
-
-        PdfDocument.Page page = document.startPage(pageInfo);
-        Canvas canvas = page.getCanvas();
-        Paint paint = new Paint();
-        paint.setColor(Color.RED);
-        canvas.drawCircle(50, 50, 30, paint);
-        paint.setColor(Color.BLACK);
-        canvas.drawText(text, 80, 50, paint);
-
-        document.finishPage(page);
-
-        pageInfo = new PdfDocument.PageInfo.Builder(300, 600, 2).create();
-        page = document.startPage(pageInfo);
-        canvas = page.getCanvas();
-        paint = new Paint();
-        paint.setColor(Color.BLUE);
-        canvas.drawCircle(100, 100, 100, paint);
-        document.finishPage(page);
-        // write the document content
-        String directory_path = Environment.getExternalStorageDirectory().getPath() + "/Budget Planner Reports/";
-        File file = new File(directory_path);
-        if (!file.exists()) {
-            file.mkdirs();
+        if (checkPermission()) {
+            Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+        } else {
+            requestPermission();
         }
-        String targetPdf = directory_path+"test-2.pdf";
-        File filePath = new File(targetPdf);
-        try {
-            document.writeTo(new FileOutputStream(filePath));
-            Toast.makeText(this, "Done", Toast.LENGTH_LONG).show();
-        } catch (IOException e) {
-            Log.e("main", "error "+e.toString());
-            Toast.makeText(this, "Something wrong: " + e.toString(),  Toast.LENGTH_LONG).show();
-        }
-        // close the document
-        document.close();
     }
 
     @Override
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    private boolean checkPermission() {
+        // checking of permissions.
+        int permission1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
+        int permission2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
+        return permission1 == PackageManager.PERMISSION_GRANTED && permission2 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        // requesting permissions if not provided.
+        ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+
+                boolean writeStorage = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean readStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+                if (writeStorage && readStorage) {
+                    Toast.makeText(this, "Permission Granted..", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Permission Denied.", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+        }
+    }
+
+    public static void generatePdfReport() {
+        try {
+            String directory_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() + "/Budget Planner Reports/";
+            File file = new File(directory_path);
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+
+            // Create a PDF file
+            PdfWriter writer = new PdfWriter(directory_path + "sample_report.pdf");
+            PdfDocument pdfDocument = new PdfDocument(writer);
+            Document document = new Document(pdfDocument);
+
+            // Create a table
+            Table table = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
+            table.setWidth(UnitValue.createPercentValue(100));
+
+            // Add a header row to the table
+            table.addCell(createCell("Column 1", true));
+            table.addCell(createCell("Column 2", true));
+            table.addCell(createCell("Column 3", true));
+
+            // Add data rows to the table
+            for (int i = 1; i <= 10; i++) {
+                table.addCell(createCell("Row " + i + ", Cell 1", false));
+                table.addCell(createCell("Row " + i + ", Cell 2", false));
+                table.addCell(createCell("Row " + i + ", Cell 3", false));
+            }
+
+            // Add the table to the document
+            document.add(table);
+
+            // Close the document
+            document.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Cell createCell(String content, boolean isHeader) throws IOException {
+        Cell cell = new Cell();
+        cell.setTextAlignment(TextAlignment.CENTER);
+        cell.setVerticalAlignment(VerticalAlignment.MIDDLE);
+
+        // Set the font (you can customize the font and size)
+        PdfFont font = PdfFontFactory.createFont();
+        cell.setFont(font);
+
+        if (isHeader) {
+            cell.setBackgroundColor(new DeviceRgb(192, 192, 192)); // Gray background for headers
+        }
+
+        // Create a paragraph and add it to the cell
+        Paragraph paragraph = new Paragraph(content);
+        cell.add(paragraph);
+
+        return cell;
     }
 }

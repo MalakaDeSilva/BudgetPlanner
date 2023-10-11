@@ -8,10 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 
-import com.google.firebase.auth.FirebaseUser;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.ui.auth.AuthHelper;
 
@@ -28,10 +25,6 @@ public class Login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         Objects.requireNonNull(getSupportActionBar()).hide();
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
 
         AuthHelper authHelper = new AuthHelper(this);
 
