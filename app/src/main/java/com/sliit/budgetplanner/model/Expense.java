@@ -13,6 +13,7 @@ public class Expense {
     private String comments;
 
     private Timestamp date;
+    private String fileRef;
 
     public Expense() {
     }
@@ -80,6 +81,14 @@ public class Expense {
 
     public void setDate(Timestamp date) {
         this.date = date;
+    }
+
+    public String getFileRef() {
+        return fileRef;
+    }
+
+    public void setFileRef(String fileRef) {
+        this.fileRef = fileRef;
     }
 
     @Override

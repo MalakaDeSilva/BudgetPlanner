@@ -8,9 +8,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -18,10 +20,17 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -32,16 +41,33 @@ import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
 import com.itextpdf.layout.property.VerticalAlignment;
 import com.sliit.budgetplanner.R;
+import com.sliit.budgetplanner.model.Expense;
+import com.sliit.budgetplanner.model.Income;
+import com.sliit.budgetplanner.viewmodel.ExpensesViewModel;
+import com.sliit.budgetplanner.viewmodel.IncomeViewModel;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 public class HistoryandReports extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 200;
     private Button generate;
     private DatePickerDialog picker;
     private EditText fromDate, toDate;
+    private CheckBox chkA4, chkA5, chkPortrait, chkLandscape;
+
+    private ExpensesViewModel expensesViewModel;
+    private IncomeViewModel incomeViewModel;
+
+    private Task<QuerySnapshot> incomesTask;
+    private Task<QuerySnapshot> expensesTask;
+
+    boolean isIncomesLoaded, isExpensesLoaded = false;
+    ArrayList<Income> incomes = new ArrayList<>();
+    ArrayList<Expense> expenses = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +77,13 @@ public class HistoryandReports extends AppCompatActivity {
         generate = findViewById(R.id.btnGenerate);
         fromDate = findViewById(R.id.fromDate);
         toDate = findViewById(R.id.toDate);
+        chkA4 = findViewById(R.id.chkA4);
+        chkA5 = findViewById(R.id.chkA5);
+        chkLandscape = findViewById(R.id.chkLandscape);
+        chkPortrait = findViewById(R.id.chkPortrait);
+
+        expensesViewModel = new ViewModelProvider(this).get(ExpensesViewModel.class);
+        incomeViewModel = new ViewModelProvider(this).get(IncomeViewModel.class);
 
         fromDate.setInputType(InputType.TYPE_NULL);
         fromDate.setOnClickListener(v -> {
@@ -79,37 +112,46 @@ public class HistoryandReports extends AppCompatActivity {
         });
 
         generate.setOnClickListener(view -> {
+
             Animation animation = AnimationUtils.loadAnimation(HistoryandReports.this, R.anim.fadein);
 
             generate.startAnimation(animation);
 
-            generatePdfReport();
+            incomesTask = incomeViewModel.getIncomes();
+            expensesTask = expensesViewModel.getExpenses();
+
+            incomesTask.addOnCompleteListener(task -> {
+                incomes.clear();
+                if (task.isSuccessful()) {
+                    setIncomesLoaded(true);
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        Income incomeObj = document.toObject(Income.class);
+                        incomeObj.setId(document.getId());
+                        incomes.add(incomeObj);
+                    }
+                    generatePdfReport(getPageSize(), getPageOrientation());
+                }
+            });
+
+            expensesTask.addOnCompleteListener(task -> {
+                expenses.clear();
+                if (task.isSuccessful()) {
+                    setExpensesLoaded(true);
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        Expense expenseObj = document.toObject(Expense.class);
+                        expenseObj.setId(document.getId());
+                        expenses.add(expenseObj);
+                    }
+                    generatePdfReport(getPageSize(), getPageOrientation());
+                }
+            });
         });
-
-
-        if (checkPermission()) {
-            Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
-        } else {
-            requestPermission();
-        }
     }
 
     @Override
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-    }
-
-    private boolean checkPermission() {
-        // checking of permissions.
-        int permission1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
-        int permission2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
-        return permission1 == PackageManager.PERMISSION_GRANTED && permission2 == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestPermission() {
-        // requesting permissions if not provided.
-        ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
     }
 
     @Override
@@ -131,46 +173,83 @@ public class HistoryandReports extends AppCompatActivity {
         }
     }
 
-    public static void generatePdfReport() {
-        try {
-            String directory_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() + "/Budget Planner Reports/";
-            File file = new File(directory_path);
-            if (!file.exists()) {
-                file.mkdirs();
+    private void generatePdfReport(String pageSize, String orientation) {
+        if (isExpensesLoaded() && isIncomesLoaded()) {
+            try {
+                String directory_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() + "/Budget Planner Reports/";
+                File file = new File(directory_path);
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+
+                // Create a PDF file
+                PdfWriter writer = new PdfWriter(directory_path + "BP_" + Timestamp.now().getSeconds() + ".pdf");
+                PdfDocument pdfDocument = new PdfDocument(writer);
+                Document document = new Document(pdfDocument);
+
+                if (pageSize.equalsIgnoreCase("A4") && orientation.equalsIgnoreCase("LANDSCAPE"))
+                    pdfDocument.setDefaultPageSize(PageSize.A4.rotate());
+                else if (pageSize.equalsIgnoreCase("A4") && orientation.equalsIgnoreCase("PORTRAIT"))
+                    pdfDocument.setDefaultPageSize(PageSize.A4);
+                else if (pageSize.equalsIgnoreCase("A5") && orientation.equalsIgnoreCase("LANDSCAPE"))
+                    pdfDocument.setDefaultPageSize(PageSize.A5.rotate());
+                else if (pageSize.equalsIgnoreCase("A5") && orientation.equalsIgnoreCase("PORTRAIT"))
+                    pdfDocument.setDefaultPageSize(PageSize.A5);
+
+                // Create a table
+                Table incomeTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
+                incomeTable.setWidth(UnitValue.createPercentValue(100));
+
+                // Add a header row to the table
+                incomeTable.addCell(createCell("Income", true));
+                incomeTable.addCell(createCell("Date", true));
+                incomeTable.addCell(createCell("Amount (LKR)", true));
+
+                incomes.forEach(income -> {
+                    try {
+                        incomeTable.addCell(createCell(income.getType(), false));
+                        incomeTable.addCell(createCell(formatDate(income.getDate(), "/"), false));
+                        incomeTable.addCell(createCell(String.valueOf(income.getAmount()), false));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                // Create a table
+                Table expensesTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
+                expensesTable.setWidth(UnitValue.createPercentValue(100));
+
+                // Add a header row to the table
+                expensesTable.addCell(createCell("Expenses", true));
+                expensesTable.addCell(createCell("Date", true));
+                expensesTable.addCell(createCell("Amount (LKR)", true));
+
+                expenses.forEach(expense -> {
+                    try {
+                        expensesTable.addCell(createCell(expense.getType(), false));
+                        expensesTable.addCell(createCell(formatDate(expense.getDate(), "/"), false));
+                        expensesTable.addCell(createCell(String.valueOf(expense.getAmount()), false));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                // Add the table to the document
+                document.add(new Paragraph("Incomes"));
+                document.add(incomeTable);
+                document.add(new Paragraph("Expenses"));
+                document.add(expensesTable);
+
+                // Close the document
+                document.close();
+                Log.i("PDF", "Done");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-            // Create a PDF file
-            PdfWriter writer = new PdfWriter(directory_path + "sample_report.pdf");
-            PdfDocument pdfDocument = new PdfDocument(writer);
-            Document document = new Document(pdfDocument);
-
-            // Create a table
-            Table table = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
-            table.setWidth(UnitValue.createPercentValue(100));
-
-            // Add a header row to the table
-            table.addCell(createCell("Column 1", true));
-            table.addCell(createCell("Column 2", true));
-            table.addCell(createCell("Column 3", true));
-
-            // Add data rows to the table
-            for (int i = 1; i <= 10; i++) {
-                table.addCell(createCell("Row " + i + ", Cell 1", false));
-                table.addCell(createCell("Row " + i + ", Cell 2", false));
-                table.addCell(createCell("Row " + i + ", Cell 3", false));
-            }
-
-            // Add the table to the document
-            document.add(table);
-
-            // Close the document
-            document.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-    private static Cell createCell(String content, boolean isHeader) throws IOException {
+    private Cell createCell(String content, boolean isHeader) throws IOException {
         Cell cell = new Cell();
         cell.setTextAlignment(TextAlignment.CENTER);
         cell.setVerticalAlignment(VerticalAlignment.MIDDLE);
@@ -188,5 +267,43 @@ public class HistoryandReports extends AppCompatActivity {
         cell.add(paragraph);
 
         return cell;
+    }
+
+    private String formatDate(Timestamp date, String seperator) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date.toDate());
+
+        String sDate = calendar.get(Calendar.YEAR) + seperator + calendar.get(Calendar.MONTH) + seperator + calendar.get(Calendar.DAY_OF_MONTH);
+        return sDate;
+    }
+
+    private String getPageSize() {
+        if (chkA5.isChecked())
+            return "A5";
+        else
+            return "A4";
+    }
+
+    private String getPageOrientation() {
+        if (chkLandscape.isChecked())
+            return "LANDSCAPE";
+        else
+            return "PORTRAIT";
+    }
+
+    public boolean isIncomesLoaded() {
+        return isIncomesLoaded;
+    }
+
+    public void setIncomesLoaded(boolean incomesLoaded) {
+        isIncomesLoaded = incomesLoaded;
+    }
+
+    public boolean isExpensesLoaded() {
+        return isExpensesLoaded;
+    }
+
+    public void setExpensesLoaded(boolean expensesLoaded) {
+        isExpensesLoaded = expensesLoaded;
     }
 }

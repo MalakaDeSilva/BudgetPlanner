@@ -1,6 +1,7 @@
 package com.sliit.budgetplanner.repository;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -8,16 +9,21 @@ import android.widget.Toast;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.ui.adapters.IncomeAdapter;
 import com.sliit.budgetplanner.util.Constants;
 import com.sliit.budgetplanner.util.FBUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,6 +115,12 @@ public class IncomeRepository {
 
     }
 
+    public Task<QuerySnapshot> getIncomes(CollectionReference incomesRef) {
+        ArrayList<Income> incomes = new ArrayList<>();
+
+        return incomesRef.whereEqualTo(Constants.USER_ID, userId).get();
+    }
+
     public void addIncome(CollectionReference incomesRef, Income income) {
         income.setUserId(userId);
         incomesRef.add(income);
@@ -141,5 +153,14 @@ public class IncomeRepository {
         });
 
         return incomes;
+    }
+
+    public UploadTask uploadImage(Bitmap bitmap, String timestamp) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        StorageReference storageReference = FBUtil.getInstance().getBucketRef().child(timestamp + ".jpg");
+        return storageReference.putBytes(data);
     }
 }

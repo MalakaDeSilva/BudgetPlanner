@@ -2,8 +2,12 @@ package com.sliit.budgetplanner.ui;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -16,8 +20,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.StorageReference;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Expense;
+import com.sliit.budgetplanner.repository.ExpenseRepository;
 import com.sliit.budgetplanner.util.Constants;
 import com.sliit.budgetplanner.util.FBUtil;
 import com.sliit.budgetplanner.viewmodel.ExpensesViewModel;
@@ -33,6 +39,7 @@ import java.util.Objects;
 
 public class AddExpenses extends AppCompatActivity {
     private static final String TAG = AddExpenses.class.getCanonicalName();
+    private static final int pic_id = 123;
     private ExpensesViewModel expensesViewModel;
     EditText editDate, amount, comments;
     DatePickerDialog datePickerDialog;
@@ -43,7 +50,9 @@ public class AddExpenses extends AppCompatActivity {
     Spinner spinnerPurpose, spinnerPayment;
     ImageButton selectDate;
     Button btnSave;
+    ImageButton btnCapture;
     Expense expense = null;
+    Bitmap photo = null;
 
     @SuppressLint("SimpleDateFormat")
     @Override
@@ -60,6 +69,7 @@ public class AddExpenses extends AppCompatActivity {
         amount = findViewById(R.id.editAmount);
         comments = findViewById(R.id.editComment);
         btnSave = findViewById(R.id.btnsave);
+        btnCapture = findViewById(R.id.btnCapture);
 
 
         try {
@@ -96,27 +106,56 @@ public class AddExpenses extends AppCompatActivity {
             setValues(expense);
 
         btnSave.setOnClickListener(view -> {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading");
+            progressDialog.show();
 
-            Expense _expense = null;
-            try {
-                _expense = new Expense(Float.parseFloat(amount.getText().toString()),
-                        spinnerPurpose.getSelectedItem().toString(),
-                        spinnerPayment.getSelectedItem().toString(),
-                        comments.getText().toString(),
-                        new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
+            ExpenseRepository.getInstance().uploadImage(photo, String.valueOf(Timestamp.now().getSeconds())).addOnFailureListener(exception -> {
+                progressDialog.dismiss();
+            }).addOnSuccessListener(taskSnapshot -> {
+                progressDialog.dismiss();
+                StorageReference fileRef = taskSnapshot.getMetadata().getReference();
 
-                if (expense == null)
-                    expensesViewModel.addExpense(_expense);
-                else {
-                    _expense.setId(expense.getId());
-                    expensesViewModel.updateExpense(_expense);
+                Expense _expense = null;
+                try {
+                    _expense = new Expense(Float.parseFloat(amount.getText().toString()),
+                            spinnerPurpose.getSelectedItem().toString(),
+                            spinnerPayment.getSelectedItem().toString(),
+                            comments.getText().toString(),
+                            new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
+
+                    if (fileRef != null)
+                        _expense.setFileRef(fileRef.toString());
+
+                    if (expense == null)
+                        expensesViewModel.addExpense(_expense);
+                    else {
+                        _expense.setId(expense.getId());
+                        expensesViewModel.updateExpense(_expense);
+                    }
+
+                } catch (ParseException e) {
+                    Log.e(TAG, "Add expenses error: " + e.getMessage());
                 }
+            }).addOnProgressListener(snapshot -> {
+                double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
+            });
 
-            } catch (ParseException e) {
-                Log.e(TAG, "Add expenses error: " + e.getMessage());
-            }
+
         });
 
+        btnCapture.setOnClickListener(view -> {
+            Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(camera_intent, pic_id);
+        });
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == pic_id) {
+            photo = (Bitmap) data.getExtras().get("data");
+        }
     }
 
     @SuppressLint("SimpleDateFormat")

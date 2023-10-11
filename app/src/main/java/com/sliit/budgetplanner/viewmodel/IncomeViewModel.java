@@ -8,15 +8,18 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.sliit.budgetplanner.model.Income;
 import com.sliit.budgetplanner.repository.IncomeRepository;
 import com.sliit.budgetplanner.ui.adapters.IncomeAdapter;
 import com.sliit.budgetplanner.util.Constants;
 import com.sliit.budgetplanner.util.FBUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class IncomeViewModel extends AndroidViewModel {
@@ -55,5 +58,9 @@ public class IncomeViewModel extends AndroidViewModel {
 
     public void getTotalIncome(Context context, TextView txtTotal) {
         IncomeRepository.getInstance().getTotalIncome(context, incomesRef, txtTotal);
+    }
+
+    public Task<QuerySnapshot> getIncomes() {
+        return IncomeRepository.getInstance().getIncomes(incomesRef);
     }
 }

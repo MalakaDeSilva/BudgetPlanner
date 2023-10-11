@@ -11,6 +11,7 @@ public class Income {
     private String comments;
 
     private Timestamp date;
+    private String fileRef;
 
     public Income() {
     }
@@ -78,6 +79,14 @@ public class Income {
 
     public void setDate(Timestamp date) {
         this.date = date;
+    }
+
+    public String getFileRef() {
+        return fileRef;
+    }
+
+    public void setFileRef(String fileRef) {
+        this.fileRef = fileRef;
     }
 
     @Override

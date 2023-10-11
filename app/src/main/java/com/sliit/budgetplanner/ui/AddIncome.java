@@ -2,22 +2,33 @@ package com.sliit.budgetplanner.ui;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Income;
+import com.sliit.budgetplanner.repository.IncomeRepository;
 import com.sliit.budgetplanner.util.Constants;
 import com.sliit.budgetplanner.util.FBUtil;
 import com.sliit.budgetplanner.viewmodel.IncomeViewModel;
@@ -27,10 +38,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 
 public class AddIncome extends AppCompatActivity {
     private static final String TAG = AddIncome.class.getCanonicalName();
+    private static final int pic_id = 123;
     private IncomeViewModel incomeViewModel;
     EditText editDate, amount, comments, purpose;
     DatePickerDialog datePickerDialog;
@@ -41,8 +54,9 @@ public class AddIncome extends AppCompatActivity {
     Spinner spinnerPayment;
     ImageButton selectDate;
     Button btnSave;
+    ImageButton btnCapture;
     Income income = null;
-
+    Bitmap photo = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +71,7 @@ public class AddIncome extends AppCompatActivity {
         amount = findViewById(R.id.editAmount);
         comments = findViewById(R.id.editComment);
         btnSave = findViewById(R.id.btnsave);
+        btnCapture = findViewById(R.id.btnCapture);
 
         try {
             income = getIncomeFromIntent(getIntent());
@@ -88,26 +103,54 @@ public class AddIncome extends AppCompatActivity {
             setValues(income);
 
         btnSave.setOnClickListener(view -> {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading");
+            progressDialog.show();
 
-            Income _income = null;
-            try {
-                _income = new Income(Float.parseFloat(amount.getText().toString()),
-                        purpose.getText().toString(),
-                        spinnerPayment.getSelectedItem().toString(),
-                        comments.getText().toString(),
-                        new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
+            IncomeRepository.getInstance().uploadImage(photo, String.valueOf(Timestamp.now().getSeconds())).addOnFailureListener(exception -> {
+                progressDialog.dismiss();
+            }).addOnSuccessListener(taskSnapshot -> {
+                progressDialog.dismiss();
+                StorageReference fileRef = taskSnapshot.getMetadata().getReference();
 
-                if (income == null)
-                    incomeViewModel.addIncome(_income);
-                else {
-                    _income.setId(income.getId());
-                    incomeViewModel.updateIncome(_income);
+                Income _income = null;
+                try {
+                    _income = new Income(Float.parseFloat(amount.getText().toString()),
+                            purpose.getText().toString(),
+                            spinnerPayment.getSelectedItem().toString(),
+                            comments.getText().toString(),
+                            new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
+
+                    if (fileRef != null)
+                        _income.setFileRef(fileRef.toString());
+
+                    if (income == null)
+                        incomeViewModel.addIncome(_income);
+                    else {
+                        _income.setId(income.getId());
+                        incomeViewModel.updateIncome(_income);
+                    }
+
+                } catch (ParseException e) {
+                    Log.e(TAG, "Add incomes error: " + e.getMessage());
                 }
-
-            } catch (ParseException e) {
-                Log.e(TAG, "Add incomes error: " + e.getMessage());
-            }
+            }).addOnProgressListener(snapshot -> {
+                double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
+            });
         });
+
+        btnCapture.setOnClickListener(view -> {
+            Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(camera_intent, pic_id);
+        });
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == pic_id) {
+            photo = (Bitmap) data.getExtras().get("data");
+        }
     }
 
     @SuppressLint("SimpleDateFormat")
