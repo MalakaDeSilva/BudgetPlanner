@@ -7,6 +7,8 @@ import android.app.DatePickerDialog;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.text.InputType;
 import android.util.Log;
 import android.view.animation.Animation;
@@ -68,6 +70,10 @@ public class HistoryandReports extends AppCompatActivity {
     boolean isIncomesLoaded, isExpensesLoaded = false;
     ArrayList<Income> incomes = new ArrayList<>();
     ArrayList<Expense> expenses = new ArrayList<>();
+
+    private HandlerThread handlerThread;
+    private Handler handler;
+    private static final String REPORT_GEN = "ReportGeneration";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,12 +152,22 @@ public class HistoryandReports extends AppCompatActivity {
                 }
             });
         });
+
+        handlerThread = new HandlerThread(REPORT_GEN);
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
     }
 
     @Override
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handlerThread.quitSafely();
     }
 
     @Override
@@ -175,77 +191,79 @@ public class HistoryandReports extends AppCompatActivity {
 
     private void generatePdfReport(String pageSize, String orientation) {
         if (isExpensesLoaded() && isIncomesLoaded()) {
-            try {
-                String directory_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() + "/Budget Planner Reports/";
-                File file = new File(directory_path);
-                if (!file.exists()) {
-                    file.mkdirs();
+            handler.post(() -> {
+                try {
+                    String directory_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() + "/Budget Planner Reports/";
+                    File file = new File(directory_path);
+                    if (!file.exists()) {
+                        file.mkdirs();
+                    }
+
+                    // Create a PDF file
+                    PdfWriter writer = new PdfWriter(directory_path + "BP_" + Timestamp.now().getSeconds() + ".pdf");
+                    PdfDocument pdfDocument = new PdfDocument(writer);
+                    Document document = new Document(pdfDocument);
+
+                    if (pageSize.equalsIgnoreCase("A4") && orientation.equalsIgnoreCase("LANDSCAPE"))
+                        pdfDocument.setDefaultPageSize(PageSize.A4.rotate());
+                    else if (pageSize.equalsIgnoreCase("A4") && orientation.equalsIgnoreCase("PORTRAIT"))
+                        pdfDocument.setDefaultPageSize(PageSize.A4);
+                    else if (pageSize.equalsIgnoreCase("A5") && orientation.equalsIgnoreCase("LANDSCAPE"))
+                        pdfDocument.setDefaultPageSize(PageSize.A5.rotate());
+                    else if (pageSize.equalsIgnoreCase("A5") && orientation.equalsIgnoreCase("PORTRAIT"))
+                        pdfDocument.setDefaultPageSize(PageSize.A5);
+
+                    // Create a table
+                    Table incomeTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
+                    incomeTable.setWidth(UnitValue.createPercentValue(100));
+
+                    // Add a header row to the table
+                    incomeTable.addCell(createCell("Income", true));
+                    incomeTable.addCell(createCell("Date", true));
+                    incomeTable.addCell(createCell("Amount (LKR)", true));
+
+                    incomes.forEach(income -> {
+                        try {
+                            incomeTable.addCell(createCell(income.getType(), false));
+                            incomeTable.addCell(createCell(formatDate(income.getDate(), "/"), false));
+                            incomeTable.addCell(createCell(String.valueOf(income.getAmount()), false));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+                    // Create a table
+                    Table expensesTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
+                    expensesTable.setWidth(UnitValue.createPercentValue(100));
+
+                    // Add a header row to the table
+                    expensesTable.addCell(createCell("Expenses", true));
+                    expensesTable.addCell(createCell("Date", true));
+                    expensesTable.addCell(createCell("Amount (LKR)", true));
+
+                    expenses.forEach(expense -> {
+                        try {
+                            expensesTable.addCell(createCell(expense.getType(), false));
+                            expensesTable.addCell(createCell(formatDate(expense.getDate(), "/"), false));
+                            expensesTable.addCell(createCell(String.valueOf(expense.getAmount()), false));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+                    // Add the table to the document
+                    document.add(new Paragraph("Incomes"));
+                    document.add(incomeTable);
+                    document.add(new Paragraph("Expenses"));
+                    document.add(expensesTable);
+
+                    // Close the document
+                    document.close();
+                    Log.i("PDF", "Done");
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-
-                // Create a PDF file
-                PdfWriter writer = new PdfWriter(directory_path + "BP_" + Timestamp.now().getSeconds() + ".pdf");
-                PdfDocument pdfDocument = new PdfDocument(writer);
-                Document document = new Document(pdfDocument);
-
-                if (pageSize.equalsIgnoreCase("A4") && orientation.equalsIgnoreCase("LANDSCAPE"))
-                    pdfDocument.setDefaultPageSize(PageSize.A4.rotate());
-                else if (pageSize.equalsIgnoreCase("A4") && orientation.equalsIgnoreCase("PORTRAIT"))
-                    pdfDocument.setDefaultPageSize(PageSize.A4);
-                else if (pageSize.equalsIgnoreCase("A5") && orientation.equalsIgnoreCase("LANDSCAPE"))
-                    pdfDocument.setDefaultPageSize(PageSize.A5.rotate());
-                else if (pageSize.equalsIgnoreCase("A5") && orientation.equalsIgnoreCase("PORTRAIT"))
-                    pdfDocument.setDefaultPageSize(PageSize.A5);
-
-                // Create a table
-                Table incomeTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
-                incomeTable.setWidth(UnitValue.createPercentValue(100));
-
-                // Add a header row to the table
-                incomeTable.addCell(createCell("Income", true));
-                incomeTable.addCell(createCell("Date", true));
-                incomeTable.addCell(createCell("Amount (LKR)", true));
-
-                incomes.forEach(income -> {
-                    try {
-                        incomeTable.addCell(createCell(income.getType(), false));
-                        incomeTable.addCell(createCell(formatDate(income.getDate(), "/"), false));
-                        incomeTable.addCell(createCell(String.valueOf(income.getAmount()), false));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-                // Create a table
-                Table expensesTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1}));
-                expensesTable.setWidth(UnitValue.createPercentValue(100));
-
-                // Add a header row to the table
-                expensesTable.addCell(createCell("Expenses", true));
-                expensesTable.addCell(createCell("Date", true));
-                expensesTable.addCell(createCell("Amount (LKR)", true));
-
-                expenses.forEach(expense -> {
-                    try {
-                        expensesTable.addCell(createCell(expense.getType(), false));
-                        expensesTable.addCell(createCell(formatDate(expense.getDate(), "/"), false));
-                        expensesTable.addCell(createCell(String.valueOf(expense.getAmount()), false));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-                // Add the table to the document
-                document.add(new Paragraph("Incomes"));
-                document.add(incomeTable);
-                document.add(new Paragraph("Expenses"));
-                document.add(expensesTable);
-
-                // Close the document
-                document.close();
-                Log.i("PDF", "Done");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            });
         }
     }
 

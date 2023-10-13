@@ -103,41 +103,25 @@ public class AddIncome extends AppCompatActivity {
             setValues(income);
 
         btnSave.setOnClickListener(view -> {
-            final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading");
-            progressDialog.show();
+            if (photo != null) {
+                final ProgressDialog progressDialog = new ProgressDialog(this);
+                progressDialog.setTitle("Uploading");
+                progressDialog.show();
 
-            IncomeRepository.getInstance().uploadImage(photo, String.valueOf(Timestamp.now().getSeconds())).addOnFailureListener(exception -> {
-                progressDialog.dismiss();
-            }).addOnSuccessListener(taskSnapshot -> {
-                progressDialog.dismiss();
-                StorageReference fileRef = taskSnapshot.getMetadata().getReference();
+                IncomeRepository.getInstance().uploadImage(photo, String.valueOf(Timestamp.now().getSeconds())).addOnFailureListener(exception -> {
+                    progressDialog.dismiss();
+                }).addOnSuccessListener(taskSnapshot -> {
+                    progressDialog.dismiss();
+                    StorageReference fileRef = taskSnapshot.getMetadata().getReference();
 
-                Income _income = null;
-                try {
-                    _income = new Income(Float.parseFloat(amount.getText().toString()),
-                            purpose.getText().toString(),
-                            spinnerPayment.getSelectedItem().toString(),
-                            comments.getText().toString(),
-                            new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
-
-                    if (fileRef != null)
-                        _income.setFileRef(fileRef.toString());
-
-                    if (income == null)
-                        incomeViewModel.addIncome(_income);
-                    else {
-                        _income.setId(income.getId());
-                        incomeViewModel.updateIncome(_income);
-                    }
-
-                } catch (ParseException e) {
-                    Log.e(TAG, "Add incomes error: " + e.getMessage());
-                }
-            }).addOnProgressListener(snapshot -> {
-                double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
-            });
+                    uploadRecord(fileRef);
+                }).addOnProgressListener(snapshot -> {
+                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                    progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
+                });
+            } else {
+                uploadRecord(null);
+            }
         });
 
         btnCapture.setOnClickListener(view -> {
@@ -211,5 +195,30 @@ public class AddIncome extends AppCompatActivity {
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    private void uploadRecord(StorageReference fileRef) {
+        Income _income = null;
+        try {
+            _income = new Income(Float.parseFloat(amount.getText().toString()),
+                    purpose.getText().toString(),
+                    spinnerPayment.getSelectedItem().toString(),
+                    comments.getText().toString(),
+                    new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
+
+            if (fileRef != null)
+                _income.setFileRef(fileRef.toString());
+
+            if (income == null)
+                incomeViewModel.addIncome(_income);
+            else {
+                _income.setId(income.getId());
+                incomeViewModel.updateIncome(_income);
+            }
+
+            photo = null;
+        } catch (ParseException e) {
+            Log.e(TAG, "Add incomes error: " + e.getMessage());
+        }
     }
 }

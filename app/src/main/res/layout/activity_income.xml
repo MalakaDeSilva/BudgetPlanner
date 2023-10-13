@@ -30,12 +30,12 @@
                 android:src="@drawable/ic_income" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="150dp"
                 android:layout_marginTop="50dp"
-                android:text="Expenses"
+                android:textAlignment="center"
+                android:text="@string/lbl_Income"
                 android:textColor="#fff"
                 android:textSize="22sp"
                 android:textStyle="bold" />

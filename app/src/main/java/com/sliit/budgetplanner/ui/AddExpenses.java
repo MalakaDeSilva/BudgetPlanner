@@ -106,42 +106,25 @@ public class AddExpenses extends AppCompatActivity {
             setValues(expense);
 
         btnSave.setOnClickListener(view -> {
-            final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading");
-            progressDialog.show();
+            if (photo != null) {
+                final ProgressDialog progressDialog = new ProgressDialog(this);
+                progressDialog.setTitle("Uploading");
+                progressDialog.show();
 
-            ExpenseRepository.getInstance().uploadImage(photo, String.valueOf(Timestamp.now().getSeconds())).addOnFailureListener(exception -> {
-                progressDialog.dismiss();
-            }).addOnSuccessListener(taskSnapshot -> {
-                progressDialog.dismiss();
-                StorageReference fileRef = taskSnapshot.getMetadata().getReference();
+                ExpenseRepository.getInstance().uploadImage(photo, String.valueOf(Timestamp.now().getSeconds())).addOnFailureListener(exception -> {
+                    progressDialog.dismiss();
+                }).addOnSuccessListener(taskSnapshot -> {
+                    progressDialog.dismiss();
+                    StorageReference fileRef = taskSnapshot.getMetadata().getReference();
 
-                Expense _expense = null;
-                try {
-                    _expense = new Expense(Float.parseFloat(amount.getText().toString()),
-                            spinnerPurpose.getSelectedItem().toString(),
-                            spinnerPayment.getSelectedItem().toString(),
-                            comments.getText().toString(),
-                            new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
-
-                    if (fileRef != null)
-                        _expense.setFileRef(fileRef.toString());
-
-                    if (expense == null)
-                        expensesViewModel.addExpense(_expense);
-                    else {
-                        _expense.setId(expense.getId());
-                        expensesViewModel.updateExpense(_expense);
-                    }
-
-                } catch (ParseException e) {
-                    Log.e(TAG, "Add expenses error: " + e.getMessage());
-                }
-            }).addOnProgressListener(snapshot -> {
-                double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
-            });
-
+                    uploadRecord(fileRef);
+                }).addOnProgressListener(snapshot -> {
+                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                    progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
+                });
+            } else {
+                uploadRecord(null);
+            }
 
         });
 
@@ -219,5 +202,30 @@ public class AddExpenses extends AppCompatActivity {
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    private void uploadRecord(StorageReference fileRef) {
+        Expense _expense = null;
+        try {
+            _expense = new Expense(Float.parseFloat(amount.getText().toString()),
+                    spinnerPurpose.getSelectedItem().toString(),
+                    spinnerPayment.getSelectedItem().toString(),
+                    comments.getText().toString(),
+                    new Timestamp(Objects.requireNonNull(new SimpleDateFormat("dd/MM/yyyy").parse(editDate.getText().toString()))));
+
+            if (fileRef != null)
+                _expense.setFileRef(fileRef.toString());
+
+            if (expense == null)
+                expensesViewModel.addExpense(_expense);
+            else {
+                _expense.setId(expense.getId());
+                expensesViewModel.updateExpense(_expense);
+            }
+
+            photo = null;
+        } catch (ParseException e) {
+            Log.e(TAG, "Add expenses error: " + e.getMessage());
+        }
     }
 }
