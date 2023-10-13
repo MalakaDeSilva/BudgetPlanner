@@ -54,6 +54,14 @@
                     android:layout_height="400dp"
                     android:orientation="vertical">
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lbl_Income"
+                        android:textSize="20sp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginStart="10dp" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -95,6 +103,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="400dp"
                     android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lblAdd_expenses"
+                        android:textSize="20sp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginStart="10dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

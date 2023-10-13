@@ -129,9 +129,7 @@ public class ExpenseRepository {
     public List<Expense> getExpensesByDateRange(CollectionReference expensesRef, Timestamp startDate, Timestamp endDate) {
         List<Expense> expenses = new ArrayList<>();
 
-        Query query = expensesRef.whereEqualTo(Constants.USER_ID, userId)
-                .where(Filter.lessThan(Constants.DATE, endDate))
-                .where(Filter.greaterThan(Constants.DATE, startDate));
+        Query query = expensesRef.whereEqualTo(Constants.USER_ID, userId);
 
         query.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {

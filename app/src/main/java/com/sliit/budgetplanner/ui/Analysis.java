@@ -20,8 +20,11 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.sliit.budgetplanner.R;
 import com.sliit.budgetplanner.model.Expense;
 import com.sliit.budgetplanner.model.Income;
@@ -33,8 +36,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 public class Analysis extends AppCompatActivity {
@@ -61,14 +66,53 @@ public class Analysis extends AppCompatActivity {
         toExp = findViewById(R.id.toExp);
         applyExp = findViewById(R.id.applyExp);
 
-        List<Income> incomes = new ArrayList<>();
+        Map<Timestamp, Float> incomes = new HashMap<>();
         incomeViewModel = new ViewModelProvider(this).get(IncomeViewModel.class);
 
-        List<Expense> expenses = new ArrayList<>();
+        Map<Timestamp, Float> expenses = new HashMap<>();
         expensesViewModel = new ViewModelProvider(this).get(ExpensesViewModel.class);
 
-        createBarChart(chart1, Color.GREEN);
-        createBarChart(chart2, Color.RED);
+        incomeViewModel.getIncomes().addOnCompleteListener(task -> {
+            incomes.clear();
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Income incomeObj = document.toObject(Income.class);
+
+                    if (incomes.containsKey(incomeObj.getDate())) {
+                        if (incomeObj.getDate() != null && incomes.get(incomeObj.getDate()) != null) {
+                            float _amount = incomes.get(incomeObj.getDate());
+                            incomes.put(incomeObj.getDate(), _amount + incomeObj.getAmount());
+                        } else {
+                            incomes.put(incomeObj.getDate(), incomeObj.getAmount());
+                        }
+                    } else {
+                        incomes.put(incomeObj.getDate(), incomeObj.getAmount());
+                    }
+                }
+                createBarChart(chart1, incomes, Color.GREEN, "Income");
+            }
+        });
+
+        expensesViewModel.getExpenses().addOnCompleteListener(task -> {
+            expenses.clear();
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Expense expenseObj = document.toObject(Expense.class);
+
+                    if (expenses.containsKey(expenseObj.getDate())) {
+                        if (expenseObj.getDate() != null && expenses.get(expenseObj.getDate()) != null) {
+                            float _amount = expenses.get(expenseObj.getDate());
+                            expenses.put(expenseObj.getDate(), _amount + expenseObj.getAmount());
+                        } else {
+                            expenses.put(expenseObj.getDate(), expenseObj.getAmount());
+                        }
+                    } else {
+                        expenses.put(expenseObj.getDate(), expenseObj.getAmount());
+                    }
+                }
+                createBarChart(chart2, expenses, Color.RED, "Expenses");
+            }
+        });
 
         initializeDatePickers(this, fromInc, toInc);
         initializeDatePickers(this, fromExp, toExp);
@@ -77,8 +121,6 @@ public class Analysis extends AppCompatActivity {
             if (fromD != null) {
                 if (toD == null)
                     toD = Timestamp.now();
-
-                incomes.addAll(incomeViewModel.getIncomeByDateRange(fromD, toD));
 
                 fromD = null;
                 toD = null;
@@ -90,15 +132,13 @@ public class Analysis extends AppCompatActivity {
                 if (toD == null)
                     toD = Timestamp.now();
 
-                expenses.addAll(expensesViewModel.getExpensesByDateRange(fromD, toD));
-
                 fromD = null;
                 toD = null;
             }
         });
     }
 
-    private void createBarChart(BarChart chart, int color) {
+    private void createBarChart(BarChart chart, Map<Timestamp, Float> data, int color, String label) {
         chart.setDrawBarShadow(false);
         chart.setDrawValueAboveBar(true);
         chart.getDescription().setEnabled(false);        // if more than 60 entries are displayed in the chart, no values will be
@@ -116,22 +156,20 @@ public class Analysis extends AppCompatActivity {
         l.setTextSize(11f);
         l.setXEntrySpace(4f);
 
-        setData(chart, 5, 100, color);
+        setData(chart, data, color, label);
     }
 
-    private void setData(BarChart chart, int count, float range, int color) {
-        float start = 1f;
+    private void setData(BarChart chart, Map<Timestamp, Float> _data, int color, String label) {
         ArrayList<BarEntry> values = new ArrayList<>();
-        for (int i = (int) start; i < start + count; i++) {
-            float val = (float) (Math.random() * (range + 1));
-            if (Math.random() * 100 < 25) {
-                values.add(new BarEntry(i, val));
-            } else {
-                values.add(new BarEntry(i, val));
-            }
+
+        int i=0;
+        for(Timestamp key : _data.keySet()) {
+            values.add(new BarEntry(i, _data.get(key)));
+            i++;
         }
+
         BarDataSet set1;
-        set1 = new BarDataSet(values, "");
+        set1 = new BarDataSet(values, label);
         set1.setDrawIcons(false);
         set1.setColor(color);
 
@@ -139,7 +177,7 @@ public class Analysis extends AppCompatActivity {
         dataSets.add(set1);
         BarData data = new BarData(dataSets);
         data.setValueTextSize(10f);
-        data.setBarWidth(0.9f);
+        data.setBarWidth(0.5f);
         chart.setData(data);
     }
 

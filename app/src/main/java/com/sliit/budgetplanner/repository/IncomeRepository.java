@@ -138,9 +138,7 @@ public class IncomeRepository {
     public List<Income> getIncomeByDateRange(CollectionReference incomesRef, Timestamp startDate, Timestamp endDate) {
         List<Income> incomes = new ArrayList<>();
 
-        Query query = incomesRef.whereEqualTo(Constants.USER_ID, userId)
-                .where(Filter.lessThan(Constants.DATE, endDate))
-                .where(Filter.greaterThan(Constants.DATE, startDate));
+        Query query = incomesRef.whereEqualTo(Constants.USER_ID, userId);
 
         query.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
